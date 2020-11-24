@@ -1,9 +1,14 @@
 import * as Sentry from '@sentry/node';
-import { RewriteFrames } from '@sentry/integrations';
+import { RewriteFrames, Dedupe, Debug } from '@sentry/integrations';
 
 const isDebugMode = () =>
   typeof window !== 'undefined'
     ? new URL(window.location.href).searchParams.get('sentry_debug') === 'true'
+    : false;
+
+const withDedupe = () =>
+  typeof window !== 'undefined'
+    ? new URL(window.location.href).searchParams.get('dedupe') === 'true'
     : false;
 
 export const init = () => {
@@ -28,6 +33,14 @@ export const init = () => {
           }
         })
       );
+    }
+
+    if (isDebugMode()) {
+      integrations.push(new Debug());
+    }
+
+    if (withDedupe()) {
+      integrations.push(new Dedupe());
     }
 
     Sentry.init({
