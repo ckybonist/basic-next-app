@@ -1,9 +1,14 @@
-import * as Sentry from '@sentry/node'
-import { RewriteFrames } from '@sentry/integrations'
+import * as Sentry from '@sentry/node';
+import { RewriteFrames } from '@sentry/integrations';
+
+const isDebugMode = () =>
+  typeof window !== 'undefined'
+    ? new URL(window.location.href).searchParams.get('sentry_debug') === 'true'
+    : false;
 
 export const init = () => {
   if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-    const integrations = []
+    const integrations = [];
     if (
       process.env.NEXT_IS_SERVER === 'true' &&
       process.env.NEXT_PUBLIC_SENTRY_SERVER_ROOT_DIR
@@ -17,16 +22,17 @@ export const init = () => {
             frame.filename = frame.filename.replace(
               process.env.NEXT_PUBLIC_SENTRY_SERVER_ROOT_DIR,
               'app:///'
-            )
-            frame.filename = frame.filename.replace('.next', '_next')
-            return frame
-          },
+            );
+            frame.filename = frame.filename.replace('.next', '_next');
+            return frame;
+          }
         })
-      )
+      );
     }
 
     Sentry.init({
-      enabled: process.env.NODE_ENV === 'production',
+      debug: isDebugMode(),
+      enabled: process.env.NODE_ENV === 'production' || isDebugMode(),
       integrations,
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
       release: process.env.NEXT_PUBLIC_COMMIT_SHA,
@@ -42,6 +48,6 @@ export const init = () => {
 
         return event;
       }
-    })
+    });
   }
-}
+};
