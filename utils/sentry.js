@@ -30,6 +30,18 @@ export const init = () => {
       integrations,
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
       release: process.env.NEXT_PUBLIC_COMMIT_SHA,
+      beforeSend(event, hint) {
+        const error = hint?.originalException;
+        if (
+          error &&
+          typeof error !== 'string' &&
+          error.message &&
+          error.message.includes('DROP_BY_BEFORESEND')
+        )
+          return null;
+
+        return event;
+      }
     })
   }
 }
